@@ -14,7 +14,7 @@ import { KeywordsModule } from './keywords/keywords.module';
 @Module({
   imports: [
     TypeOrmModule.forRoot(typeORMConfig),
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env' }),
     AuthModule,
     UsersModule,
     TeamsModule,
