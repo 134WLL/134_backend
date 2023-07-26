@@ -6,7 +6,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { typeORMConfig } from './config/typeorm.config';
 import { ConfigModule } from '@nestjs/config';
 import { StatisticsModule } from './statistics/statistics.module';
-import { ChatsModule } from './chats/chats.module';
+import { ConversationsModule } from './conversations/conversations.module';
+import { ReportModule } from './report/report.module';
+import { FeedbackModule } from './feedback/feedback.module';
+import { KeywordsModule } from './keywords/keywords.module';
 
 @Module({
   imports: [
@@ -16,7 +19,10 @@ import { ChatsModule } from './chats/chats.module';
     UsersModule,
     TeamsModule,
     StatisticsModule,
-    ChatsModule,
+    ConversationsModule,
+    ReportModule,
+    FeedbackModule,
+    KeywordsModule,
   ],
   controllers: [],
   providers: [],

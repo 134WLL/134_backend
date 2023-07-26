@@ -16,6 +16,7 @@ import {
   RegisterEditorRequestDto,
 } from './dtos/register-request.dto';
 import { UserRole } from './types/user-role.type';
+import { RegisterNicknameDto } from './dtos/nickname-request.dto';
 
 @Controller('users')
 export class UsersController {
@@ -38,12 +39,18 @@ export class UsersController {
   }
 
   @Post('/:id/nickname')
-  async createUserNickname(@Param('id') id: number, @Body() name_code: number) {
-    return await this.usersService.createUserNickname(id, name_code);
+  async createUserNickname(
+    @Param('id') id: number,
+    @Body() nicknameCodes: RegisterNicknameDto,
+  ) {
+    return await this.usersService.createUserNickname(id, nicknameCodes);
   }
 
   @Put('/:id/nickname')
-  async updateUserNickname(@Param('id') id: number, @Body() name_code: number) {
-    return await this.usersService.updateUserNickname(id, name_code);
+  async updateUserNickname(
+    @Param('id') id: number,
+    @Body() nicknameCodes: RegisterNicknameDto,
+  ) {
+    return await this.usersService.updateUserNickname(id, nicknameCodes);
   }
 }

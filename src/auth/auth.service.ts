@@ -29,7 +29,7 @@ export class AuthService {
         uid: user.id,
         email: user.email,
         nickname: user.nickname,
-        profile_image_code: user.profile_image_code,
+        profile_image_url: user.profile_image_url,
       });
 
       await this.setCurrentRefreshToken(user.id, tokens.refresh_token);

@@ -25,11 +25,20 @@ export class User {
   @Column({ nullable: true })
   nickname: string | null;
 
+  @Column({ nullable: true })
+  emotion_code: number | null;
+
+  @Column({ nullable: true })
+  action_code: number | null;
+
+  @Column({ nullable: true })
+  condition_code: number | null;
+
   @Column({ type: 'enum', enum: UserRole, default: UserRole.GUEST })
   role: UserRole;
 
   @Column({ nullable: true })
-  profile_image_code: string | null;
+  profile_image_url: string | null;
 
   @Column({ default: false })
   register_confirm: boolean;

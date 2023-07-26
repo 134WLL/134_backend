@@ -1,32 +1,25 @@
-import { Conversation_Room } from 'src/conversations/entities/conversation_room.entity';
 import { User } from 'src/users/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
+  ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { Conversation_User } from './conversation.entity';
+import { Team } from 'src/teams/entities/team.entity';
 
 @Entity()
-export class Team {
+export class Conversation_Room {
   @PrimaryGeneratedColumn({ type: 'int', name: 'id' })
   id: number;
 
   @Column()
-  company: string;
+  name: number;
 
   @Column()
-  editor_id: number;
-
-  @Column({ unique: true })
-  code: string;
-
-  @Column()
-  hashed_code: string;
-
-  @Column({ default: 30 })
   timeout: number;
 
   @CreateDateColumn()
@@ -38,12 +31,12 @@ export class Team {
   @Column('datetime', { name: 'deleted_at', nullable: true })
   deleted_at: Date | null;
 
-  @OneToMany(
-    () => Conversation_Room,
-    (conversation_room) => conversation_room.team,
-  )
-  conversation_room: Conversation_Room[];
+  @ManyToOne(() => Team, (team) => team.id)
+  team: Team;
 
-  @OneToMany(() => User, (user) => user.team)
-  user_id: User[];
+  @OneToMany(
+    () => Conversation_User,
+    (conversation_user) => conversation_user.conversation_room,
+  )
+  conversation_user: Conversation_User[];
 }

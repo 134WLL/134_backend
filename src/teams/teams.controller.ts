@@ -26,6 +26,11 @@ export class TeamsController {
     return await this.teamsService.getTeamUsers(id);
   }
 
+  @Post('/:id/conversations')
+  async createConversation(@Param('id') id: number, @Body() body) {
+    return await this.teamsService.createTeamConversation(id, body);
+  }
+
   @Put('/:id')
   async updateTeam(@Param('id') id: number, @Body() body) {
     return await this.teamsService.updateTeam(id, body);
