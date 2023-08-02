@@ -2,49 +2,61 @@ import {
   Controller,
   Post,
   Get,
-  Put,
-  Delete,
   UseGuards,
   Req,
   Res,
+  Body,
 } from '@nestjs/common';
 import { IOAuthUser } from './interfaces/IOAuthUser.interface';
 import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { JwtKakaoGuard } from './jwt/guards/jwt-social-kakao.guard';
 import { JwtAccessGuard } from './jwt/guards/jwt-access.guard';
+import { CurrentUser } from 'src/common/decorators/user.decorator';
+import { JwtRefreshGuard } from './jwt/guards/jwt-refresh.guard';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Get()
-  async test() {
-    const a = process.env.JWT_ACCESS_CONSTANT;
-    const b = process.env.JWT_REFRESH_CONSTANT;
-    return { a, b };
-  }
-
   @Get('/signin/kakao')
   @UseGuards(JwtKakaoGuard)
-  async signInKakao(@Req() req: Request & IOAuthUser, @Res() res: Response) {}
+  async signInKakao(@Req() req: Request & IOAuthUser) {}
+
+  @Post('/signin/test')
+  async signIn(@Body() body) {}
 
   @Get('/kakao/callback')
   @UseGuards(JwtKakaoGuard)
-  async signInCallback(@Req() req: Request & IOAuthUser) {
-    // console.log(req);
-    return this.authService.OAuthLogin({ req });
+  async signInCallback(@Req() req: Request & IOAuthUser, @Res() res: Response) {
+    return this.authService.OAuthLogin({ req, res });
   }
 
   @Post('/signout')
   @UseGuards(JwtAccessGuard)
-  async signOut(@Req() req: Request) {
-    const id = 1;
-    return this.authService.jwtSignOut(id);
+  async signOut(@CurrentUser() user) {
+    return this.authService.jwtSignOut(user.id);
+  }
+
+  @Get('/access-test')
+  @UseGuards(JwtAccessGuard)
+  async gestUser(@CurrentUser() user) {
+    return user;
   }
 
   @Post('/refresh')
-  async getRefreshToken() {
-    return '';
+  @UseGuards(JwtRefreshGuard)
+  async getRefreshToken(@CurrentUser() data, @Res() res: Response) {
+    const { user, refresh_token } = data;
+    return await this.authService.checkRefreshTokens(
+      user.id,
+      refresh_token,
+      res,
+    );
+  }
+
+  @Post('/test-user')
+  async createTestUser(@Body() body, @Res() res: Response) {
+    return this.authService.createTestUser(body, res);
   }
 }

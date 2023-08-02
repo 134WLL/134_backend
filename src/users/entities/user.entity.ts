@@ -10,6 +10,8 @@ import {
 } from 'typeorm';
 import { UserRole } from '../types/user-role.type';
 import { Team } from 'src/teams/entities/team.entity';
+import { User_Status } from './user_status.entity';
+import { User_Notify } from './user_notify.entity';
 
 @Entity()
 export class User {
@@ -32,7 +34,7 @@ export class User {
   action_code: number | null;
 
   @Column({ nullable: true })
-  condition_code: number | null;
+  state_code: number | null;
 
   @Column({ type: 'enum', enum: UserRole, default: UserRole.GUEST })
   role: UserRole;
@@ -54,6 +56,12 @@ export class User {
 
   @Column('datetime', { name: 'deleted_at', nullable: true })
   deleted_at: Date | null;
+
+  @OneToOne(() => User_Status, (user_status) => user_status.user)
+  user_status: User_Status;
+
+  @OneToOne(() => User_Notify, (user_notify) => user_notify.user)
+  user_notify: User_Notify;
 
   @ManyToOne(() => Team, (team) => team.id)
   @JoinColumn({ name: 'team_id' })

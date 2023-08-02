@@ -1,0 +1,26 @@
+[
+  {
+    "emotion_name": "Love",
+    "emotion_code": "1"
+  },
+  {
+    "emotion_name": "Like",
+    "emotion_code": "2"
+  },
+  {
+    "emotion_name": "Hug",
+    "emotion_code": "3"
+  },
+  {
+    "emotion_name": "Sad",
+    "emotion_code": "4"
+  },
+  {
+    "emotion_name": "You're Right",
+    "emotion_code": "5"
+  },
+  {
+    "emotion_name": "Angry",
+    "emotion_code": "6"
+  }
+]

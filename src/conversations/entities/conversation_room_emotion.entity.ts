@@ -7,24 +7,37 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { User } from './user.entity';
+import { Conversation_Room } from './conversation_room.entity';
 
 @Entity()
-export class User_Status {
+export class Conversation_Room_Emotion {
   @PrimaryGeneratedColumn({ type: 'int', name: 'id' })
   id: number;
 
   @Column({ default: 0 })
-  energy: number;
+  love_count: number;
 
   @Column({ default: 0 })
-  relation: number;
+  like_count: number;
 
   @Column({ default: 0 })
-  stress: number;
+  hug_count: number;
 
   @Column({ default: 0 })
-  stable: number;
+  sad_count: number;
+
+  @Column({ default: 0 })
+  right_count: number;
+
+  @Column({ default: 0 })
+  angry_count: number;
+
+  @OneToOne(
+    () => Conversation_Room,
+    (conversation_room) => conversation_room.conversation_room_emotion,
+  )
+  @JoinColumn({ name: 'conversation_room_id' })
+  conversation_room: Conversation_Room;
 
   @CreateDateColumn()
   created_at: Date;
@@ -34,8 +47,4 @@ export class User_Status {
 
   @Column('datetime', { name: 'deleted_at', nullable: true })
   deleted_at: Date | null;
-
-  @OneToOne(() => User, (user) => user.user_status)
-  @JoinColumn({ name: 'user_id' })
-  user: User;
 }

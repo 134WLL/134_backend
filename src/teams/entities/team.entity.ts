@@ -45,5 +45,5 @@ export class Team {
   conversation_room: Conversation_Room[];
 
   @OneToMany(() => User, (user) => user.team)
-  user_id: User[];
+  user: User[];
 }

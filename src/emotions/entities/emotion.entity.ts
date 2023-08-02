@@ -7,9 +7,15 @@ import {
 } from 'typeorm';
 
 @Entity()
-export class Report_Relation {
+export class Emotion {
   @PrimaryGeneratedColumn({ type: 'int', name: 'id' })
   id: number;
+
+  @Column()
+  name: string;
+
+  @Column()
+  code: number;
 
   @CreateDateColumn()
   created_at: Date;

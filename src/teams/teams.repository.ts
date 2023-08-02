@@ -17,9 +17,21 @@ export class TeamsRepository {
     return await this.teamRepository.find({ where: options });
   }
 
+  async query(options) {
+    return await this.teamRepository.query(options);
+  }
+
   async findOne(options) {
     return await this.teamRepository.findOne({
       where: options,
+    });
+  }
+
+  async findOneOption(options) {
+    const { where_option, relaitions_option } = options;
+    return await this.teamRepository.findOne({
+      where: where_option,
+      relations: relaitions_option,
     });
   }
 

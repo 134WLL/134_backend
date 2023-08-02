@@ -7,9 +7,18 @@ import {
 } from 'typeorm';
 
 @Entity()
-export class Emotion {
+export class Emotion_User {
   @PrimaryGeneratedColumn({ type: 'int', name: 'id' })
   id: number;
+
+  @Column()
+  rec_user_id: number;
+
+  @Column()
+  send_user_id: number;
+
+  @Column()
+  name: string;
 
   @CreateDateColumn()
   created_at: Date;

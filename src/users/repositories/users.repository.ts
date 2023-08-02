@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from './entities/user.entity';
+import { User } from '../entities/user.entity';
 
 @Injectable()
 export class UsersRepository {
@@ -19,6 +19,16 @@ export class UsersRepository {
   async findOne(options) {
     return await this.userRepository.findOne({
       where: options,
+    });
+  }
+
+  async findOneOption(options) {
+    const { where_option, relations_option } = options;
+    console.log(where_option, relations_option);
+
+    return await this.userRepository.findOne({
+      where: where_option,
+      relations: relations_option,
     });
   }
 

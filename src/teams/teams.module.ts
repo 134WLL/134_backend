@@ -7,11 +7,17 @@ import { Team } from './entities/team.entity';
 import { UsersModule } from 'src/users/users.module';
 import { ConversationsModule } from 'src/conversations/conversations.module';
 import { Conversation_Room } from 'src/conversations/entities/conversation_room.entity';
-import { Conversation_User } from 'src/conversations/entities/conversation.entity';
+import { Conversation_User } from 'src/conversations/entities/conversation_user.entity';
+import { User } from 'src/users/entities/user.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Conversation_User, Conversation_Room, Team]),
+    TypeOrmModule.forFeature([
+      Conversation_User,
+      Conversation_Room,
+      Team,
+      User,
+    ]),
     forwardRef(() => UsersModule),
     forwardRef(() => ConversationsModule),
   ],

@@ -7,6 +7,7 @@ import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
 import { JwtAccessPayload } from './types/jwt-access.payload';
 import * as bcrypt from 'bcrypt';
+import { Request, Response } from 'express';
 
 @Injectable()
 export class AuthService {
@@ -15,14 +16,18 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async OAuthLogin({ req }) {
+  async createTestUser(body, res: Response) {
     try {
-      const { email } = req.user;
-      console.log(email);
-      let user = await this.usersService.findOne({ email: req.user.email }); //user를 찾아서
+      const { email } = body;
+      let user = await this.usersService.findOneOption({
+        where_option: { email: email },
+        relation_option: [],
+      }); //user를 찾아서
 
       if (!user) {
         user = await this.usersService.save({ email });
+        // console.log(user);
+        await this.usersService.userSave(user.id);
       }
 
       const tokens = await this.getTokens({
@@ -34,10 +39,112 @@ export class AuthService {
 
       await this.setCurrentRefreshToken(user.id, tokens.refresh_token);
 
-      return tokens;
+      const find_user = await this.usersService.findOneOption({
+        where_option: { email: user.email },
+        relations_option: ['team', 'user_status', 'user_notify'],
+      });
 
-      // this.setRefreshToken({ user, res });
-      // return res.redirect('리다이렉트할 url주소');
+      let team_id = null;
+      let team_code = null;
+      if (find_user.team) {
+        team_id = find_user.team.id;
+        team_code = find_user.team.code;
+      }
+
+      res.cookie('refresh_token', tokens.refresh_token, {
+        httpOnly: true,
+        secure: true,
+        domain: '134b.shop',
+        sameSite: 'none',
+        path: '/',
+      });
+      res.status(200).send({
+        data: {
+          token: {
+            access_token: tokens.access_token,
+          },
+          user: {
+            id: find_user.id,
+            name: find_user.name,
+            nickname: find_user.nickname,
+            role: find_user.role,
+            profile_image_url: find_user.profile_image_url,
+            guide_confirm_date: find_user.user_notify.guide_confirm_date,
+            team_id: team_id,
+            team_code,
+          },
+        },
+      });
+    } catch (err) {
+      throw new BadRequestException(err.response);
+    }
+  }
+
+  async OAuthLogin({ req, res }) {
+    try {
+      let user = await this.usersService.findOneOption({
+        where_option: { email: req.user.password },
+        relation_option: [],
+      }); //user를 찾아서
+
+      if (!user) {
+        user = await this.usersService.save({ email: req.user.password });
+        // console.log(user);
+        await this.usersService.userSave(user.id);
+      }
+
+      const tokens = await this.getTokens({
+        uid: user.id,
+        email: user.email,
+        nickname: user.nickname,
+        profile_image_url: user.profile_image_url,
+      });
+
+      await this.setCurrentRefreshToken(user.id, tokens.refresh_token);
+
+      const find_user = await this.usersService.findOneOption({
+        where_option: { email: user.email },
+        relations_option: ['team', 'user_notify', 'user_status'],
+      });
+
+      let team_id = null;
+      let team_code = null;
+      if (find_user.team) {
+        team_id = find_user.team.id;
+        team_code = find_user.team.code;
+      }
+
+      res.cookie('refresh_token', tokens.refresh_token, {
+        httpOnly: true,
+        secure: true,
+        domain: '134b.shop',
+        sameSite: 'none',
+        path: '/',
+      });
+      res.status(200).send({
+        data: {
+          token: { access_token: tokens.access_token },
+          user: {
+            id: find_user.id,
+            name: find_user.name,
+            nickname: find_user.nickname,
+            role: find_user.role,
+            profile_image_url: find_user.profile_image_url,
+            guide_confirm_date: find_user.user_notify.guide_confirm_date,
+            team_id: team_id,
+            team_code,
+          },
+        },
+      });
+    } catch (err) {
+      // console.log(err);
+      throw new BadRequestException(err.response);
+    }
+  }
+
+  async jwtSignOut(id: number) {
+    try {
+      await this.removeRefreshToken(id);
     } catch (err) {
       throw new BadRequestException(err.response);
     }
@@ -67,13 +174,13 @@ export class AuthService {
       const salt = await bcrypt.genSalt();
       const hashed_refresh_token = await bcrypt.hash(refresh_token, salt);
 
-      await this.usersService.update({ id }, { hashed_refresh_token });
+      await this.usersService.update(id, { hashed_refresh_token });
     } catch (err) {
       throw new BadRequestException(err.response);
     }
   }
 
-  async checkRefreshTokens(id: number, refreshToken: string) {
+  async checkRefreshTokens(id: number, refresh_token: string, res: Response) {
     try {
       const user = await this.usersService.findOne({ id });
       if (!user || !user.hashed_refresh_token) {
@@ -82,7 +189,7 @@ export class AuthService {
 
       const checkRefreshUser = await this.getUserIfRefreshTokenMatches(
         user.id,
-        refreshToken,
+        refresh_token,
       );
 
       if (!checkRefreshUser) {
@@ -93,12 +200,22 @@ export class AuthService {
         uid: checkRefreshUser.id,
         email: checkRefreshUser.email,
         nickname: checkRefreshUser.nickname,
+        profile_image_url: checkRefreshUser.profile_image_url,
       };
-      const tokens = await this.getTokens(payload);
 
+      const tokens = await this.getTokens(payload);
       await this.setCurrentRefreshToken(user.id, tokens.refresh_token);
 
-      return { tokens };
+      console.log('refresh tokne', { access_token: tokens.access_token });
+
+      res.cookie('refresh_token', tokens.refresh_token, {
+        httpOnly: true,
+        secure: true,
+        domain: '134b.shop',
+        sameSite: 'none',
+        path: '/',
+      });
+      res.status(200).send({ data: { access_token: tokens.access_token } });
     } catch (err) {
       throw new BadRequestException(err.response);
     }
@@ -121,22 +238,11 @@ export class AuthService {
     } catch (err) {}
   }
 
-  async jwtSignOut(id: number) {
-    try {
-      await this.removeRefreshToken(id);
-    } catch (err) {
-      throw new BadRequestException(err.response);
-    }
-  }
-
   async removeRefreshToken(id: number) {
     try {
-      return await this.usersService.update(
-        { id },
-        {
-          hashed_refresh_token: null,
-        },
-      );
+      return await this.usersService.update(id, {
+        hashed_refresh_token: null,
+      });
     } catch (err) {
       throw new BadRequestException(err.response);
     }

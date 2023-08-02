@@ -2,23 +2,21 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  ManyToOne,
+  JoinColumn,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Conversation_Room } from './conversation_room.entity';
+import { User } from './user.entity';
 
 @Entity()
-export class Conversation_User {
+export class User_Notify {
   @PrimaryGeneratedColumn({ type: 'int', name: 'id' })
   id: number;
 
-  @Column()
-  user_id: number;
-
-  @Column({ default: false })
-  active_flag: boolean;
+  @Column({ nullable: true })
+  guide_confirm_date: string;
 
   @CreateDateColumn()
   created_at: Date;
@@ -29,9 +27,7 @@ export class Conversation_User {
   @Column('datetime', { name: 'deleted_at', nullable: true })
   deleted_at: Date | null;
 
-  @ManyToOne(
-    () => Conversation_Room,
-    (conversation_room) => conversation_room.id,
-  )
-  conversation_room: Conversation_Room;
+  @OneToOne(() => User, (user) => user.user_notify)
+  @JoinColumn({ name: 'user_id' })
+  user: User;
 }
