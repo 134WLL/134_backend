@@ -3,9 +3,9 @@ import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { SuccessInterceptor } from './common/interceptors/success.interceptor';
 import { AppModule } from './app.module';
-import { RedisIoAdapter } from './conversations/adapters/redis.adapter';
+import { RedisIoAdapter } from './modules/conversations/adapters/redis.adapter';
 import { WsAdapter } from '@nestjs/platform-ws';
-import { SocketIoAdapter } from './conversations/adapters/socket-io.adapters';
+import { SocketIoAdapter } from './modules/conversations/adapters/socket-io.adapters';
 import { IoAdapter } from '@nestjs/platform-socket.io';
 import * as cookieParser from 'cookie-parser';
 

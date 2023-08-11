@@ -1,16 +1,18 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import 'dotenv/config';
-import { Conversation_User } from 'src/conversations/entities/conversation_user.entity';
-import { Conversation_Room } from 'src/conversations/entities/conversation_room.entity';
-import { Keyword } from 'src/keywords/entities/keyword.entity';
-import { Question } from 'src/keywords/entities/question.entity';
-import { Team } from 'src/teams/entities/team.entity';
-import { User } from 'src/users/entities/user.entity';
-import { User_Notify } from 'src/users/entities/user_notify.entity';
-import { User_Status } from 'src/users/entities/user_status.entity';
-import { Emotion } from 'src/emotions/entities/emotion.entity';
-import { Emotion_User } from 'src/emotions/entities/emotion_user.entity';
-import { Conversation_Room_Emotion } from 'src/conversations/entities/conversation_room_emotion.entity';
+import { Conversation_User } from 'src/modules/conversations/entities/conversation_user.entity';
+import { Conversation_Room } from 'src/modules/conversations/entities/conversation_room.entity';
+import { Conversation_Room_Emotion } from 'src/modules/conversations/entities/conversation_room_emotion.entity';
+import { User } from 'src/modules/users/entities/user.entity';
+import { Team } from 'src/modules/teams/entities/team.entity';
+import { User_Status } from 'src/modules/users/entities/user_status.entity';
+import { User_Notify } from 'src/modules/users/entities/user_notify.entity';
+import { Keyword } from 'src/modules/keywords/entities/keyword.entity';
+import { Question } from 'src/modules/keywords/entities/question.entity';
+import { Emotion } from 'src/modules/emotions/entities/emotion.entity';
+import { Emotion_User } from 'src/modules/emotions/entities/emotion_user.entity';
+import { Feedback } from 'src/modules/feedback/entities/feedback.entity';
+import { Feedback_User } from 'src/modules/feedback/entities/feedback_user.entity';
 
 export const typeORMConfig: TypeOrmModuleOptions = {
   type: 'mysql',
@@ -31,7 +33,9 @@ export const typeORMConfig: TypeOrmModuleOptions = {
     Emotion,
     Emotion_User,
     Conversation_Room_Emotion,
+    Feedback,
+    Feedback_User,
   ],
   logging: false,
-  synchronize: false,
+  synchronize: true,
 };
