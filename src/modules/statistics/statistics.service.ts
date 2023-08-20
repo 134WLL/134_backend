@@ -4,7 +4,6 @@ import {
   Injectable,
   forwardRef,
 } from '@nestjs/common';
-import { template } from 'handlebars';
 import { ConversationsService } from 'src/modules/conversations/conversations.service';
 import { UsersService } from '../users/users.service';
 import { TeamsService } from '../teams/teams.service';
@@ -455,10 +454,6 @@ export class StatisticsService {
           report_date: e.reg_create_date,
           report_id: e.id,
         });
-        // {
-        //   report_date: `2022-03-13`, // 날짜 yyyy-MM-dd 형식
-        //   report_id: 1,
-        // },
       });
 
       return {
@@ -622,8 +617,6 @@ export class StatisticsService {
 
         return_data.push(new_data);
       });
-      // const conversations_users =
-      //   await this.conversationsService.find_conversation_user(team_users);
 
       return return_data;
     } catch (err) {
@@ -713,7 +706,6 @@ export class StatisticsService {
         }),
       );
 
-      // const feedback = await );
       feedback_array.forEach((feed) => {
         score_percent += feed.score;
       });

@@ -71,10 +71,7 @@ export class FeedbackService {
       });
 
       const new_date = this.usersService.todayDate();
-      const find_feedback = await this.usersService.getCheckFeedback(
-        user.id,
-        new_date,
-      );
+      const find_feedback = await this.usersService.getFeedback(user.id);
 
       if (find_feedback) {
         throw new BadRequestException('이미 오늘 피드백을 만들었습니다!');
@@ -185,10 +182,8 @@ export class FeedbackService {
       const feedback_array = [];
       await Promise.all(
         conversation_feedback_array.map(async (id) => {
-          const [feedback] = await this.feedbackRepository.query(`
-        SELECT *
-        FROM feedback
-        WHERE conversation_user_id = ${id}`);
+          const [feedback] =
+            await this.feedbackRepository.findFeedbackByConversationUserId(id);
 
           feedback_array.push(feedback);
         }),
@@ -201,11 +196,10 @@ export class FeedbackService {
 
   async getFeedbackByUser(id, create_date) {
     try {
-      return await this.feedbackUsersRepository.query(`
-      SELECT *
-      FROM feedback_user
-      WHERE review_user_id = ${id}
-      AND DATE_FORMAT(created_at, '%Y-%m-%d' ) = '${create_date}'`);
+      return await this.feedbackUsersRepository.findFeedbackByConversationUserIdDate(
+        id,
+        create_date,
+      );
     } catch (err) {
       throw new BadRequestException(err.response);
     }
@@ -213,10 +207,9 @@ export class FeedbackService {
 
   async getFeedbackScores(feedback_user_id) {
     try {
-      return await this.feedbackRepository.query(`
-      SELECT *
-      FROM feedback
-      WHERE conversation_user_id = ${feedback_user_id}`);
+      return await this.feedbackRepository.findFeedbackByConversationUserId(
+        feedback_user_id,
+      );
     } catch (err) {
       throw new BadRequestException(err.response);
     }

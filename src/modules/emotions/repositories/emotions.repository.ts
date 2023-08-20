@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Emotion } from '../entities/emotion.entity';
 import { Repository } from 'typeorm';
@@ -28,5 +28,15 @@ export class EmotionsRepository {
 
   async query(options) {
     return await this.emotionRepository.query(options);
+  }
+
+  async findEmotions() {
+    try {
+      return await this.emotionRepository.query(`
+      SELECT * 
+      FROM emotion`);
+    } catch (err) {
+      throw new BadRequestException(err.response);
+    }
   }
 }

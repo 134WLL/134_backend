@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { readFileSync } from 'fs';
 import { EmotionsRepository } from './repositories/emotions.repository';
 import { EmotionsUsersRepository } from './repositories/emotions-user.repository';
@@ -30,13 +30,11 @@ export class EmotionsService {
           });
         }
       });
-      const option = `SELECT * 
-      FROM emotion
-      `;
-      const find_emotions = await this.emotionsRepository.query(option);
+
+      const find_emotions = await this.emotionsRepository.findEmotions();
       return { emotions: find_emotions };
     } catch (err) {
-      throw new Error(err);
+      throw new BadRequestException(err.response);
     }
   }
 }

@@ -77,14 +77,7 @@ export class TeamsService {
 
   async getTeamUsers(id) {
     try {
-      const options = `
-      SELECT user.id, user.nickname, user.name, user.profile_image_url
-      FROM team
-        INNER JOIN user
-        ON user.team_id = ${id}
-      WHERE team.id = ${id}`;
-
-      return await this.teamsRepository.query(options);
+      return await this.teamsRepository.findTeamWithUser(id);
     } catch (err) {
       throw new BadRequestException(err.response);
     }
@@ -115,34 +108,23 @@ export class TeamsService {
 
   async getTeamConversationRooms(userInfo, id: number) {
     try {
-      let options;
       let find_teams;
 
       if (userInfo.role === 'guest') {
         const new_team = [];
 
-        options = `
-        SELECT conversation_room.name, conversation_room.id AS conversation_room_id, conversation_room.state_flag AS conversation_flag 
-        FROM team
-          INNER JOIN conversation_room
-          ON conversation_room.team_id =${id}
-        WHERE team.id = ${id}
-        AND conversation_room.progress_flag = true`;
-
-        find_teams = await this.teamsRepository.query(options);
+        find_teams =
+          await this.teamsRepository.findTeamConversationRoomByProgress(id);
 
         if (find_teams.length) {
           await Promise.all(
             find_teams.map(async (team) => {
               let flag = 0;
-              const options = `
-              SELECT *
-              FROM conversation_user
-              WHERE conversation_room_id = ${team.conversation_room_id}
-              `;
-              const find_user = await this.converationsService.findUser(
-                options,
-              );
+
+              const find_user =
+                await this.converationsService.findConversationUser(
+                  team.conversation_room_id,
+                );
 
               find_user.forEach((user) => {
                 if (user.user_id == userInfo.id) {
@@ -154,9 +136,7 @@ export class TeamsService {
               if (flag == 1) {
                 const [find_room_emotion] =
                   await this.converationsService.findConversationRoomEmotion(
-                    `SELECT *
-                  FROM conversation_room_emotion
-                  WHERE conversation_room_id = ${team.conversation_room_id}`,
+                    team.conversation_room_id,
                   );
 
                 let conversation_emotions = [
@@ -235,14 +215,8 @@ export class TeamsService {
 
         find_teams = new_team;
       } else if (userInfo.role === 'editor') {
-        options = `SELECT conversation_room.name, conversation_room.id AS conversation_room_id, conversation_room.state_flag AS conversation_flag 
-        FROM team
-          INNER JOIN conversation_room
-          ON conversation_room.team_id =${id}
-        WHERE team.id = ${id}
-        AND conversation_room.progress_flag = true`;
-
-        find_teams = await this.teamsRepository.query(options);
+        find_teams =
+          await this.teamsRepository.findTeamConversationRoomByProgress(id);
 
         if (find_teams.length) {
           await Promise.all(
@@ -253,9 +227,7 @@ export class TeamsService {
 
               const [find_room_emotion] =
                 await this.converationsService.findConversationRoomEmotion(
-                  `SELECT *
-                  FROM conversation_room_emotion
-                  WHERE conversation_room_id = ${conversation_team.conversation_room_id}`,
+                  conversation_team.conversation_room_id,
                 );
 
               let conversation_emotions = [
@@ -302,14 +274,10 @@ export class TeamsService {
                 conversation_team.emotions = result_emotions;
               }
 
-              let user_options = `
-              SELECT *
-              FROM conversation_user
-              WHERE conversation_room_id = ${conversation_team.conversation_room_id}`;
-
-              const find_user = await this.converationsService.findUser(
-                user_options,
-              );
+              const find_user =
+                await this.converationsService.findConversationUser(
+                  conversation_team.conversation_room_id,
+                );
 
               conversation_team.user_info = [];
               await Promise.all(
@@ -345,43 +313,22 @@ export class TeamsService {
 
   async getSearchTeamConversationRooms(userInfo, id: number, name) {
     try {
-      let options;
       let find_teams;
 
       if (userInfo.role === 'guest') {
         const new_team = [];
 
-        options = `
-        SELECT conversation_room.name, conversation_room.id AS conversation_room_id, conversation_room.state_flag AS conversation_flag 
-        FROM team
-          INNER JOIN conversation_room
-          ON conversation_room.team_id =${id}
-        WHERE team.id = ${id}
-        AND conversation_room.progress_flag = true`;
-
-        // const conversationOption = `
-        // SELECT name, id AS conversation_room_id, state_flag AS conversation_flag
-        // FROM conversation_room
-        // WHERE team_id = ${id}
-        // AND prgress_flag = true`;
-
-        // find_teams = await this.converationsService.conversationRoomQuery(
-        //   options,
-        // );
-
-        find_teams = await this.teamsRepository.query(options);
-
-        // conversation_room_emotion = await
+        find_teams =
+          await this.teamsRepository.findTeamConversationRoomByProgress(id);
 
         await Promise.all(
           find_teams.map(async (team) => {
             let flag = 0;
-            const options = `
-            SELECT *
-            FROM conversation_user
-            WHERE conversation_room_id = ${team.conversation_room_id}
-            `;
-            const find_user = await this.converationsService.findUser(options);
+
+            const find_user =
+              await this.converationsService.findConversationUser(
+                team.conversation_room_id,
+              );
 
             find_user.forEach((user) => {
               if (user.user_id == userInfo.id) {
@@ -393,9 +340,7 @@ export class TeamsService {
             if (flag == 1) {
               const [find_room_emotion] =
                 await this.converationsService.findConversationRoomEmotion(
-                  `SELECT *
-                FROM conversation_room_emotion
-                WHERE conversation_room_id = ${team.conversation_room_id}`,
+                  team.conversation_room_id,
                 );
 
               let conversation_emotions = [
@@ -483,14 +428,8 @@ export class TeamsService {
       } else if (userInfo.role === 'editor') {
         const new_team = [];
 
-        options = `SELECT conversation_room.name, conversation_room.id AS conversation_room_id, conversation_room.state_flag AS conversation_flag 
-        FROM team
-          INNER JOIN conversation_room
-          ON conversation_room.team_id =${id}
-        WHERE team.id = ${id}
-        AND conversation_room.progress_flag = true`;
-
-        find_teams = await this.teamsRepository.query(options);
+        find_teams =
+          await this.teamsRepository.findTeamConversationRoomByProgress(id);
 
         await Promise.all(
           find_teams.map(async (conversation_team) => {
@@ -500,9 +439,7 @@ export class TeamsService {
 
             const [find_room_emotion] =
               await this.converationsService.findConversationRoomEmotion(
-                `SELECT *
-                FROM conversation_room_emotion
-                WHERE conversation_room_id = ${conversation_team.conversation_room_id}`,
+                conversation_team.conversation_room_id,
               );
 
             let conversation_emotions = [
@@ -549,14 +486,10 @@ export class TeamsService {
               conversation_team.emotions = result_emotions;
             }
 
-            let user_options = `
-            SELECT *
-            FROM conversation_user
-            WHERE conversation_room_id = ${conversation_team.conversation_room_id}`;
-
-            const find_user = await this.converationsService.findUser(
-              user_options,
-            );
+            const find_user =
+              await this.converationsService.findConversationUser(
+                conversation_team.conversation_room_id,
+              );
 
             conversation_team.user_info = [];
             await Promise.all(
@@ -594,12 +527,8 @@ export class TeamsService {
       }
 
       return { conversation_room: find_teams };
-
-      // const find_team = await this.
     } catch (err) {
       throw new BadRequestException(err.response);
     }
   }
-
-  // where title like '%아디다스%';
 }

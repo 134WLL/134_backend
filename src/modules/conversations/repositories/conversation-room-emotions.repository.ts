@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Conversation_Room_Emotion } from '../entities/conversation_room_emotion.entity';
 import { Repository } from 'typeorm';
@@ -28,5 +28,16 @@ export class ConversationRoomEmotionsRepository {
 
   async query(options) {
     return await this.conversationRoomEmotionRepository.query(options);
+  }
+
+  async findEmotionByConversationRoomId(conversation_room_id: number) {
+    try {
+      return await this.conversationRoomEmotionRepository.query(`
+        SELECT *
+        FROM conversation_room_emotion
+        WHERE conversation_room_id = ${conversation_room_id}`);
+    } catch (err) {
+      throw new BadRequestException(err.response);
+    }
   }
 }

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { Team } from './entities/team.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -37,5 +37,32 @@ export class TeamsRepository {
 
   async update(id, options) {
     return await this.teamRepository.update(id, options);
+  }
+
+  async findTeamWithUser(id: number) {
+    try {
+      return await this.teamRepository.query(`
+      SELECT user.id, user.nickname, user.name, user.profile_image_url
+      FROM team
+        INNER JOIN user
+        ON user.team_id = ${id}
+      WHERE team.id = ${id}`);
+    } catch (err) {
+      throw new BadRequestException(err.response);
+    }
+  }
+
+  async findTeamConversationRoomByProgress(id: number) {
+    try {
+      return await this.teamRepository.query(`
+      SELECT conversation_room.name, conversation_room.id AS conversation_room_id, conversation_room.state_flag AS conversation_flag 
+      FROM team
+        INNER JOIN conversation_room
+        ON conversation_room.team_id =${id}
+      WHERE team.id = ${id}
+      AND conversation_room.progress_flag = true`);
+    } catch (err) {
+      throw new BadRequestException(err.response);
+    }
   }
 }

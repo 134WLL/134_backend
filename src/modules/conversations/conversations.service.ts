@@ -26,10 +26,10 @@ export class ConversationsService {
 
   async getConversationUsers(userInfo, conversation_room_id) {
     try {
-      const find_users = await this.conversationRepository.userQuery(`
-      SELECT *
-      FROM conversation_user
-      WHERE conversation_user.conversation_room_id = ${conversation_room_id}`);
+      const find_users =
+        await this.conversationRepository.findConversationUserById(
+          conversation_room_id,
+        );
 
       const user_info = [];
 
@@ -128,14 +128,11 @@ export class ConversationsService {
 
         await Promise.all(
           find_rooms.map(async (room) => {
-            const options = `
-            SELECT *
-            FROM conversation_user
-            WHERE conversation_user.conversation_room_id = ${room.id}
-            AND conversation_user.user_id = ${userInfo.id}
-            `;
-
-            const find_users = await this.findUser(options);
+            const find_users =
+              await this.conversationRepository.findConversationUserByRoomIdUserId(
+                room.id,
+                userInfo.id,
+              );
 
             await Promise.all(
               find_users.map(async (user) => {
@@ -229,10 +226,10 @@ export class ConversationsService {
     try {
       const keyword_array = keyword_code.keywordCode;
 
-      const find_conversation_user = await this.conversationUserQuery(`
-      SELECT *
-      FROM conversation_user
-      WHERE user_id = ${user_info.id}`);
+      const find_conversation_user =
+        await this.conversationRepository.findConversationUserByUserId(
+          user_info.id,
+        );
 
       const keyword_name_array = [];
 
@@ -284,17 +281,17 @@ export class ConversationsService {
       const keyword_array = keyword_code.keyword_code;
       const question_code = [];
 
-      const find_conversation_user = await this.conversationUserQuery(`
-      SELECT first_keyword, second_keyword, third_keyword
-      FROM conversation_user
-      WHERE user_id = ${user_info.id}`);
+      const find_conversation_users =
+        await this.conversationRepository.findConversationUserByUserId(
+          user_info.id,
+        );
 
       const keyword_name_array = [];
 
-      find_conversation_user.forEach((e) => {
-        keyword_name_array.push(e.first_keyword);
-        keyword_name_array.push(e.second_keyword);
-        keyword_name_array.push(e.third_keyword);
+      find_conversation_users.forEach((user) => {
+        keyword_name_array.push(user.first_keyword);
+        keyword_name_array.push(user.second_keyword);
+        keyword_name_array.push(user.third_keyword);
       });
 
       for (let i = 0; i < keyword_array.length; i++) {
@@ -381,30 +378,21 @@ export class ConversationsService {
     }
   }
 
-  async findConversationRoomEmotion(options) {
-    return await this.conversationRoomEmotionsRepository.query(options);
+  async findConversationRoomEmotion(conversation_room_id: number) {
+    return await this.conversationRoomEmotionsRepository.findEmotionByConversationRoomId(
+      conversation_room_id,
+    );
   }
 
-  async findUser(options) {
+  async findConversationUser(conversation_room_id: number) {
     try {
-      return await this.conversationRepository.userQuery(options);
+      return await this.conversationRepository.findConversationUserById(
+        conversation_room_id,
+      );
     } catch (err) {
       throw new BadRequestException(err.response);
     }
   }
-
-  async findUsers(options) {
-    try {
-      return await this.conversationRepository.userFind(options);
-    } catch (err) {
-      throw new BadRequestException(err.response);
-    }
-  }
-
-  // localhost:3000/posts/1
-  // localhost:3000/posts/2
-  // localhost:3000/posts/0
-  // socket controller
 
   async enterRoom(
     client: Socket,
@@ -422,10 +410,9 @@ export class ConversationsService {
 
     const [find_users, find_request_user, find_request_room] =
       await Promise.all([
-        this.conversationRepository.userQuery(`
-  SELECT conversation_user.user_id, id, active_flag
-  FROM conversation_user
-  WHERE conversation_user.conversation_room_id = ${payload.conversation_room_id}`),
+        this.conversationRepository.findConversationUserById(
+          payload.conversation_room_id,
+        ),
         this.conversationRepository.userFindOne({
           id: payload.conversation_user_id,
         }),
@@ -525,19 +512,15 @@ export class ConversationsService {
     // client.rooms.clear();
     client.join(`${payload.conversation_room_id}`);
 
-    const [find_users, find_request_user, find_request_room] =
-      await Promise.all([
-        this.conversationRepository.userQuery(`
-  SELECT *
-  FROM conversation_user
-  WHERE conversation_user.conversation_room_id = ${payload.conversation_room_id}`),
-        this.conversationRepository.userFindOne({
-          id: payload.conversation_user_id,
-        }),
-        this.conversationRepository.roomFindOne({
-          where: { id: payload.conversation_room_id },
-        }),
-      ]);
+    const [find_users, find_request_room] = await Promise.all([
+      this.conversationRepository.findConversationUserById(
+        payload.conversation_room_id,
+      ),
+
+      this.conversationRepository.roomFindOne({
+        where: { id: payload.conversation_room_id },
+      }),
+    ]);
 
     if (!find_request_room.started_socket) {
       await this.conversationRepository.roomUpdate(
@@ -607,19 +590,14 @@ export class ConversationsService {
     // client.rooms.clear();
     client.join(`${payload.conversation_room_id}`);
 
-    const [find_users, find_request_user, find_request_room] =
-      await Promise.all([
-        this.conversationRepository.userQuery(`
-SELECT *
-FROM conversation_user
-WHERE conversation_user.conversation_room_id = ${payload.conversation_room_id}`),
-        this.conversationRepository.userFindOne({
-          id: payload.conversation_user_id,
-        }),
-        this.conversationRepository.roomFindOne({
-          where: { id: payload.conversation_room_id },
-        }),
-      ]);
+    const [find_users, find_request_room] = await Promise.all([
+      this.conversationRepository.findConversationUserById(
+        payload.conversation_room_id,
+      ),
+      this.conversationRepository.roomFindOne({
+        where: { id: payload.conversation_room_id },
+      }),
+    ]);
 
     let user_flag = 0;
     let question_last_flag = false;
@@ -727,19 +705,14 @@ WHERE conversation_user.conversation_room_id = ${payload.conversation_room_id}`)
     // client.rooms.clear();
     client.join(`${payload.conversation_room_id}`);
 
-    const [find_users, find_request_user, find_request_room] =
-      await Promise.all([
-        this.conversationRepository.userQuery(`
-  SELECT *
-  FROM conversation_user
-  WHERE conversation_user.conversation_room_id = ${payload.conversation_room_id}`),
-        this.conversationRepository.userFindOne({
-          id: payload.conversation_user_id,
-        }),
-        this.conversationRepository.roomFindOne({
-          where: { id: payload.conversation_room_id },
-        }),
-      ]);
+    const [find_users, find_request_room] = await Promise.all([
+      this.conversationRepository.findConversationUserById(
+        payload.conversation_room_id,
+      ),
+      this.conversationRepository.roomFindOne({
+        where: { id: payload.conversation_room_id },
+      }),
+    ]);
 
     let user_flag = 0;
 
@@ -799,11 +772,11 @@ WHERE conversation_user.conversation_room_id = ${payload.conversation_room_id}`)
     // client.rooms.clear();
     client.join(`${payload.conversation_room_id}`);
 
-    const [receive_user] = await this.conversationRepository.userQuery(`
-    SELECT *
-    FROM conversation_user
-    WHERE id = ${payload.conversation_user_id}
-    AND conversation_room_id = ${payload.conversation_room_id}`);
+    const [receive_user] =
+      await this.conversationRepository.findConversationUserByIdRoomId(
+        payload.conversation_user_id,
+        payload.conversation_room_id,
+      );
 
     let emotion_list = [
       {
@@ -852,21 +825,15 @@ WHERE conversation_user.conversation_room_id = ${payload.conversation_room_id}`)
     // client.rooms.clear();
     client.join(`${payload.conversation_room_id}`);
 
-    const [find_request_user, [find_request_room], [receive_user]] =
-      await Promise.all([
-        this.conversationRepository.userFindOne({
-          id: payload.conversation_user_id,
-        }),
-        this.conversationRoomEmotionsRepository.query(`
-        SELECT *
-        FROM conversation_room_emotion
-        WHERE conversation_room_id = ${payload.conversation_room_id}`),
-        this.conversationRepository.userQuery(`
-        SELECT *
-        FROM conversation_user
-        WHERE user_id = ${payload.receive_user_id}
-        AND conversation_room_id = ${payload.conversation_room_id}`),
-      ]);
+    const [[find_request_room], [receive_user]] = await Promise.all([
+      this.conversationRoomEmotionsRepository.findEmotionByConversationRoomId(
+        payload.conversation_room_id,
+      ),
+      this.conversationRepository.findConversationUserByRoomIdUserId(
+        payload.conversation_room_id,
+        payload.receive_user_id,
+      ),
+    ]);
 
     let emotion_list = [
       {
@@ -968,20 +935,8 @@ WHERE conversation_user.conversation_room_id = ${payload.conversation_room_id}`)
 
   async checkTimeOut(client: Socket) {
     const [end_data, return_data] = await Promise.all([
-      this.conversationRepository.roomQuery(`
-    SELECT *
-    FROM conversation_room
-    WHERE progress_flag = true
-    AND end_time_alarm = false
-    AND end_at < NOW()`),
-      this.conversationRepository.roomQuery(`
-    SELECT *
-    FROM conversation_room
-    WHERE conversation_room.progress_flag = true
-    AND started_socket = 1
-    AND remained_time_alarm = false
-    AND alarm_at < DATE_SUB(NOW(),INTERVAL 5 MINUTE)
-    AND end_at > NOW()`),
+      this.conversationRepository.findEndTime(),
+      this.conversationRepository.findMiddleTime(),
     ]);
 
     await Promise.all(
@@ -999,14 +954,6 @@ WHERE conversation_user.conversation_room_id = ${payload.conversation_room_id}`)
         });
       }),
     );
-
-    // await Promise.all(
-    //   end_data.map(async (data) => {
-    //     await this.conversationRepository.roomUpdate(data.id, {
-    //       state_flag: 2,
-    //     });
-    //   }),
-    // );
 
     return { end_data, return_data };
   }
@@ -1057,20 +1004,17 @@ WHERE conversation_user.conversation_room_id = ${payload.conversation_room_id}`)
 
   async getTeamConversation(team_id) {
     try {
-      const conversation_rooms = await this.conversationRepository.roomQuery(`
-      SELECT *
-      FROM conversation_room
-      WHERE team_id = ${team_id}
-      AND state_flag = 2`);
+      const conversation_rooms =
+        await this.conversationRepository.findEndConversationRoomByTeamId(
+          team_id,
+        );
 
       const users = [];
 
       await Promise.all(
         conversation_rooms.map(async (room) => {
-          const find_users = await this.conversationRepository.userQuery(`
-        SELECT *
-        FROM conversation_user
-        WHERE conversation_room_id =${room.id}`);
+          const find_users =
+            await this.conversationRepository.findConversationUserById(room.id);
           find_users.forEach((user) => {
             users.push(user);
           });
@@ -1111,10 +1055,10 @@ WHERE conversation_user.conversation_room_id = ${payload.conversation_room_id}`)
     try {
       await Promise.all(
         team_users.map(async (user) => {
-          const find_data = await this.conversationRepository.userQuery(`
-        SELECT *
-        FROM conversation_user
-        WHERE user_id = ${user.id}`);
+          const find_data =
+            await this.conversationRepository.findConversationUserByUserId(
+              user.id,
+            );
           user.conversation_count = find_data.length;
         }),
       );
@@ -1126,12 +1070,10 @@ WHERE conversation_user.conversation_room_id = ${payload.conversation_room_id}`)
 
   async findConversationUsersByDate(id, date) {
     try {
-      return await this.conversationRepository.userQuery(`
-      SELECT *
-      FROM conversation_user
-      WHERE user_id = ${id}
-      AND remained_feedback = 2
-      AND DATE_FORMAT(created_at, '%Y-%m-%d' ) = '${date}'`);
+      return await this.conversationRepository.findConversationUserByUserIdDate(
+        id,
+        date,
+      );
     } catch (err) {
       throw new Error(err.message);
     }
@@ -1139,10 +1081,9 @@ WHERE conversation_user.conversation_room_id = ${payload.conversation_room_id}`)
 
   async findConversationsUsers(user_id) {
     try {
-      return await this.conversationRepository.userQuery(`
-      SELECT *
-      FROM conversation_user
-      WHERE user_id = ${user_id}`);
+      return await this.conversationRepository.findConversationUserByUserId(
+        user_id,
+      );
     } catch (err) {
       throw new BadRequestException(err.message);
     }

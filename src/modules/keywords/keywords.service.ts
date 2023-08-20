@@ -79,32 +79,15 @@ export class KeywordsService {
         name: keyword_name,
       });
 
-      let find_questions;
-
-      if (!flag) {
-        find_questions = await this.questionsRepository.query(`
-      SELECT *
-      FROM question
-      WHERE keyword_id = ${find_keyword.id}
-      AND status_map = ${user_info.state_code}`);
-      } else {
-        find_questions = await this.questionsRepository.query(`
-      SELECT *
-      FROM question
-      WHERE keyword_id = ${find_keyword.id}`);
-      }
+      const find_questions =
+        await this.questionsRepository.findQuestionsByKeywordId(
+          find_keyword.id,
+          user_info.state_code,
+          flag,
+        );
 
       const random_value =
         find_questions[Math.floor(Math.random() * find_questions.length)];
-
-      // const find_questions = await this.questionsRepository.findOptions({
-      //   where: { keyword: find_keyword },
-      // });
-
-      // 조건 필요
-      // 유저 이름
-      // 처음 일 때는 최고 추천
-      // 두번 째 일 때는 랜덤
 
       return { questions: random_value };
     } catch (err) {

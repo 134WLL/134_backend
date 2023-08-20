@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../entities/user.entity';
@@ -34,5 +34,52 @@ export class UserStatusRepository {
 
   async query(options) {
     return await this.userStatusRepository.query(options);
+  }
+
+  async findUserStatusById(id: number) {
+    try {
+      return await this.userStatusRepository.query(`
+      SELECT *
+      FROM user_status
+      WHERE user_id = ${id}
+      `);
+    } catch (err) {
+      throw new BadRequestException(err.response);
+    }
+  }
+
+  async findUserStatusByDate(id: number, date) {
+    try {
+      return await this.userStatusRepository.query(`
+      SELECT *
+      FROM user_status
+      WHERE user_id = ${id}
+      AND check_date = '${date}'
+      `);
+    } catch (err) {
+      throw new BadRequestException(err.response);
+    }
+  }
+
+  async findUserStatusByDateFormat(id: number) {
+    try {
+      return await this.userStatusRepository.query(`
+      SELECT id, DATE_FORMAT(created_at, '%Y-%m-%d' ) AS reg_create_date
+      FROM user_status
+      WHERE user_id = ${id}`);
+    } catch (err) {
+      throw new BadRequestException(err.response);
+    }
+  }
+
+  async findStateDataByDateFormat(report_id: number) {
+    try {
+      return await this.userStatusRepository.query(`
+      SELECT id, energy, relation, stress, stable, conversation_count, DATE_FORMAT(created_at, '%Y-%m-%d' ) AS reg_create_date
+      FROM user_status
+      WHERE id = ${report_id}`);
+    } catch (err) {
+      throw new BadRequestException(err.response);
+    }
   }
 }

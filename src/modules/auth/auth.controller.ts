@@ -23,9 +23,6 @@ export class AuthController {
   @UseGuards(JwtKakaoGuard)
   async signInKakao(@Req() req: Request & IOAuthUser) {}
 
-  @Post('/signin/test')
-  async signIn(@Body() body) {}
-
   @Get('/kakao/callback')
   @UseGuards(JwtKakaoGuard)
   async signInCallback(@Req() req: Request & IOAuthUser, @Res() res: Response) {

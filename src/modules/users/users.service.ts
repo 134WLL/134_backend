@@ -378,29 +378,10 @@ export class UsersService {
     try {
       const new_date = this.todayDate();
 
-      const [status] = await this.userStatusRepository.query(`
-      SELECT *
-      FROM user_status
-      WHERE user_id = ${user.id}
-      AND check_date = '${new_date}'
-      `);
-
-      if (!status) {
-        return null;
-      }
-      return { status };
-    } catch (err) {
-      throw new BadRequestException(err.response);
-    }
-  }
-
-  async getCheckFeedback(id, new_date) {
-    try {
-      const [status] = await this.userStatusRepository.query(`
-      SELECT *
-      FROM user_status
-      WHERE user_id = ${id}
-      AND check_date = '${new_date}'`);
+      const [status] = await this.userStatusRepository.findUserStatusByDate(
+        user.id,
+        new_date,
+      );
 
       if (!status) {
         return null;
@@ -413,10 +394,7 @@ export class UsersService {
 
   async getStatisticCharater(user_info, team_id) {
     try {
-      return await this.usersRepository.query(`
-      SELECT emotion_code,action_code,state_code
-      FROM user
-      WHERE team_id = ${team_id}`);
+      return await this.usersRepository.findUsersCodeData(team_id);
     } catch (err) {
       throw new BadRequestException(err.response);
     }
@@ -424,27 +402,38 @@ export class UsersService {
 
   async getUserFeedback(team_id) {
     try {
-      const team_users = await this.usersRepository.query(`
-      SELECT *
-      FROM user
-      WHERE team_id = ${team_id}`);
-
-      const users_id = [];
-      team_users.forEach((user) => {
-        users_id.push(user.id);
-      });
+      const team_users = await this.usersRepository.findUsersByTeam(team_id);
 
       const users_data = [];
       await Promise.all(
-        users_id.map(async (id) => {
-          const data = await this.userStatusRepository.query(`
-        SELECT *
-        FROM user_status
-        WHERE user_id= ${id}`);
-          data.forEach((e) => {
-            if (e) {
-              users_data.push(e);
+        team_users.map(async (user) => {
+          const status_data =
+            await this.userStatusRepository.findUserStatusById(user.id);
+          status_data.forEach((status) => {
+            if (status) {
+              users_data.push(status);
             }
+          });
+        }),
+      );
+      return users_data;
+    } catch (err) {
+      throw new BadRequestException(err.response);
+    }
+  }
+
+  async getUserLog(user_info, team_id) {
+    try {
+      const users_data = await this.usersRepository.findUsersByTeam(team_id);
+
+      await Promise.all(
+        users_data.map(async (user) => {
+          const find_status =
+            await this.userStatusRepository.findUserStatusById(user.id);
+
+          user.status_array = [];
+          find_status.forEach((status) => {
+            user.status_array.push(status);
           });
         }),
       );
@@ -455,63 +444,26 @@ export class UsersService {
     }
   }
 
-  async getUserLog(user_info, team_id) {
-    try {
-      const data = await this.usersRepository.query(`
-      SELECT *
-      FROM user
-      WHERE team_id = ${team_id}`);
-
-      await Promise.all(
-        data.map(async (e) => {
-          const find_status = await this.userStatusRepository.query(`
-          SELECT *
-          FROM user_status
-          WHERE user_id = ${e.id}
-          `);
-
-          e.status_array = [];
-          find_status.forEach((status) => {
-            e.status_array.push(status);
-          });
-        }),
-      );
-
-      return data;
-    } catch (err) {
-      throw new BadRequestException(err.response);
-    }
-  }
-
   async getUserSearchLog(user_info, team_id, name) {
     try {
-      const data = await this.usersRepository.query(`
-      (SELECT *
-      FROM user
-      WHERE team_id = ${team_id}
-      AND name like '%${name}%')
-      UNION DISTINCT
-      (SELECT *
-      FROM user
-      WHERE team_id = ${team_id}
-      AND nickname like '%${name}%')`);
+      const users_data = await this.usersRepository.findUsersBySearchName(
+        team_id,
+        name,
+      );
 
       await Promise.all(
-        data.map(async (e) => {
-          const find_status = await this.userStatusRepository.query(`
-          SELECT *
-          FROM user_status
-          WHERE user_id = ${e.id}
-          `);
+        users_data.map(async (user) => {
+          const find_status =
+            await this.userStatusRepository.findUserStatusById(user.id);
 
-          e.status_array = [];
+          user.status_array = [];
           find_status.forEach((status) => {
-            e.status_array.push(status);
+            user.status_array.push(status);
           });
         }),
       );
 
-      return data;
+      return users_data;
     } catch (err) {
       throw new BadRequestException(err.response);
     }
@@ -519,10 +471,7 @@ export class UsersService {
 
   async getUserReport(user_info, id) {
     try {
-      return await this.userStatusRepository.query(`
-      SELECT id, DATE_FORMAT(created_at, '%Y-%m-%d' ) AS reg_create_date
-      FROM user_status
-      WHERE user_id = ${id}`);
+      return await this.userStatusRepository.findUserStatusByDateFormat(id);
     } catch (err) {
       throw new BadRequestException(err.response);
     }
@@ -530,10 +479,9 @@ export class UsersService {
 
   async getUserReportDetail(user_info, id, report_id) {
     try {
-      const [user_report] = await this.userStatusRepository.query(`
-      SELECT id, energy, relation, stress, stable, conversation_count, DATE_FORMAT(created_at, '%Y-%m-%d' ) AS reg_create_date
-      FROM user_status
-      WHERE id = ${report_id}`);
+      const [user_report] =
+        await this.userStatusRepository.findStateDataByDateFormat(report_id);
+
       return user_report;
     } catch (err) {
       throw new BadRequestException(err.response);
@@ -542,10 +490,7 @@ export class UsersService {
 
   async getUserReports(user_info, id) {
     try {
-      return await this.userStatusRepository.query(`
-      SELECT *
-      FROM user_status
-      WHERE user_id = ${id}`);
+      return await this.userStatusRepository.findUserStatusById(id);
     } catch (err) {
       throw new BadRequestException(err.response);
     }

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { Feedback } from '../entities/feedback.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -28,5 +28,16 @@ export class FeedbackRepository {
 
   async query(options) {
     return await this.feedbackRepository.query(options);
+  }
+
+  async findFeedbackByConversationUserId(conversation_user_id: number) {
+    try {
+      return await this.feedbackRepository.query(`
+      SELECT *
+      FROM feedback
+      WHERE conversation_user_id = ${conversation_user_id}`);
+    } catch (err) {
+      throw new BadRequestException(err.response);
+    }
   }
 }
