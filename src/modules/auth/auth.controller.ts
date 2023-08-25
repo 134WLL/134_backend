@@ -26,13 +26,13 @@ export class AuthController {
   @Get('/kakao/callback')
   @UseGuards(JwtKakaoGuard)
   async signInCallback(@Req() req: Request & IOAuthUser, @Res() res: Response) {
-    return this.authService.OAuthLogin({ req, res });
+    return await this.authService.OAuthLogin({ req, res });
   }
 
   @Post('/signout')
   @UseGuards(JwtAccessGuard)
   async signOut(@CurrentUser() user) {
-    return this.authService.jwtSignOut(user.id);
+    return await this.authService.jwtSignOut(user.id);
   }
 
   @Get('/access-test')
@@ -54,6 +54,6 @@ export class AuthController {
 
   @Post('/test-user')
   async createTestUser(@Body() body, @Res() res: Response) {
-    return this.authService.createTestUser(body, res);
+    return await this.authService.createTestUser(body, res);
   }
 }

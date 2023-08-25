@@ -8,10 +8,10 @@ import { WsAdapter } from '@nestjs/platform-ws';
 import { SocketIoAdapter } from './modules/conversations/adapters/socket-io.adapters';
 import { IoAdapter } from '@nestjs/platform-socket.io';
 import * as cookieParser from 'cookie-parser';
+import { HttpExceptionFilter } from './common/filters/http-exceiption.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
-  // app.useWebSocketAdapter(new IoAdapter(app));
 
   app.enableCors({
     origin: true,
@@ -19,11 +19,8 @@ async function bootstrap() {
     credentials: true,
   });
   app.use(cookieParser());
-  // const redisIoAdapter = new RedisIoAdapter(app);
-  // await redisIoAdapter.connectToRedis();
 
-  // app.useWebSocketAdapter(redisIoAdapter);
-
+  // app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,
@@ -32,12 +29,6 @@ async function bootstrap() {
   );
 
   app.useGlobalInterceptors(new SuccessInterceptor());
-
-  // app.enableCors({
-  //   origin: true,
-  //   methods: 'GET,PUT,POST,DELETE,UPDATE,OPTIONS',
-  //   credentials: true,
-  // });
 
   await app.listen(process.env.MAIN_PORT);
 

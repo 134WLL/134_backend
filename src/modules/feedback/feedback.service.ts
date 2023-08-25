@@ -71,7 +71,8 @@ export class FeedbackService {
       });
 
       const new_date = this.usersService.todayDate();
-      const find_feedback = await this.usersService.getFeedback(user.id);
+
+      const find_feedback = await this.usersService.getFeedback(user);
 
       if (find_feedback) {
         throw new BadRequestException('이미 오늘 피드백을 만들었습니다!');

@@ -50,6 +50,7 @@ export class UserStatusRepository {
 
   async findUserStatusByDate(id: number, date) {
     try {
+      console.log(id, date);
       return await this.userStatusRepository.query(`
       SELECT *
       FROM user_status
@@ -57,7 +58,7 @@ export class UserStatusRepository {
       AND check_date = '${date}'
       `);
     } catch (err) {
-      throw new BadRequestException(err.response);
+      throw new BadRequestException(err);
     }
   }
 
