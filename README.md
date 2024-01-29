@@ -1,16 +1,9 @@
 # 팀 빌딩을 위한 조직 내 대화 솔루션
 
 ## 배포 링크
-> AWS S3, CloudFront, Route53 배포 / Github Actions CICD 구축
 
 - [134 서비스 링크](https://134.works)
 
-## 실행 방법
-```
-git clone https://github.com/134talk/frontend.git
-yarn install
-yarn start
-```
 ## 서비스 개요
 > 2023/04/25 ~
 #### 프로젝트 주제
