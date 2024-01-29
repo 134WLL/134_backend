@@ -32,11 +32,9 @@
 <img src="https://github.com/134talk/frontend/assets/101298873/5e26c459-ee16-47d8-93df-1f8705281af3" width="800">
 
 ## 기술 스택
-- React, TypeScript
-- React-Query, ReduxTK
+- NestJS, Typescript
+- MySQL, TypeORM
 - Socket.IO
-- Axios
-- Styled-Components
 
  ## 기타
  - [Convention](https://github.com/134talk/frontend/issues/1)
